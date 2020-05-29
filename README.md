@@ -16,7 +16,7 @@ Just for the backend application:
 
 Go to your project root folder via command line
 ```
-cd path/to/workspace/sebamaster-movie-backend
+cd path/to/workspace/seba-backend
 ```
 
 **Install node dependencies**
@@ -42,7 +42,7 @@ mongorestore dump/
 This variables are based in your local configuration
 ```bash
 export PORT=3000
-export MONGODB_URI="mongodb://localhost:27017/moviedb"
+export MONGODB_URI="mongodb://localhost:27010/communitydb"
 export JWT_SECRET="very secret secret"
 ```
 
