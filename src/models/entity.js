@@ -1,13 +1,12 @@
 "use strict";
 
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 
 // Define the entity schema
-const EntitySchema  = new mongoose.Schema({
+const EntitySchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: "User",
   },
   description: {
     type: String,
@@ -16,10 +15,9 @@ const EntitySchema  = new mongoose.Schema({
     type: [String],
   },
   breed: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-
 // Export the Entity model
-module.exports = mongoose.model('Entity', EntitySchema);
+module.exports = mongoose.model("Entity", EntitySchema);
