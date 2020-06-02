@@ -2,8 +2,8 @@
 
 const mongoose = require("mongoose");
 
-// Define the entity schema
-const EntitySchema = new mongoose.Schema({
+// Define the offer schema
+const OfferSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -39,5 +39,5 @@ const EntitySchema = new mongoose.Schema({
   },
 });
 
-// Export the Entity model
-module.exports = mongoose.model("Offer", EntitySchema);
+// Export the Offer model
+module.exports = mongoose.model("Offer", OfferSchema);
