@@ -12,7 +12,12 @@ const EntitySchema = new mongoose.Schema({
     type: String,
   },
   entityId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Entity",
+  },
+  reviewId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Review",
   },
   status: {
     type: String,
