@@ -10,6 +10,7 @@ const AuthController = require('../controllers/auth');
 router.post('/login', AuthController.login);
 router.post('/register', AuthController.register);
 router.get('/me', middlewares.checkAuthentication , AuthController.me);
+router.put('/update', middlewares.checkAuthentication, AuthController.update);
 router.get('/logout', middlewares.checkAuthentication, AuthController.logout);
 
 

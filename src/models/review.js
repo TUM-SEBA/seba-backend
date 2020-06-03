@@ -11,11 +11,11 @@ const ReviewSchema  = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Customer'
   },
   caretaker: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Customer'
   },
   text: {
     type: String,
