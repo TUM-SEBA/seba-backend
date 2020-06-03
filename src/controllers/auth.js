@@ -4,7 +4,7 @@ const jwt        = require('jsonwebtoken');
 const bcrypt     = require('bcryptjs');
 
 const config     = require('../config');
-const UserModel  = require('../models/user');
+const CustomerModel  = require('../models/customer');
 
 
 const login = async (req,res) => {
@@ -19,7 +19,7 @@ const login = async (req,res) => {
     });
 
     try {
-        let user = await UserModel.findOne({username: req.body.username}).exec();
+        let user = await CustomerModel.findOne({username: req.body.username}).exec();
 
         // check if the password is valid
         const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
@@ -40,7 +40,7 @@ const login = async (req,res) => {
     }
 };
 
-
+//Create a Customer
 const register = async (req,res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
         error: 'Bad Request',
@@ -52,10 +52,25 @@ const register = async (req,res) => {
         message: 'The request body must contain a username property'
     });
 
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'name')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a name property'
+    });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'phoneNumber')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a phoneNumber property'
+    });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'address')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a address property'
+    });
+
     const user = Object.assign(req.body, {password: bcrypt.hashSync(req.body.password, 8)});
 
     try {
-        let retUser = await UserModel.create(user);
+        let retUser = await CustomerModel.create(user);
 
         // if user is registered without errors
         // create a token
@@ -82,7 +97,7 @@ const register = async (req,res) => {
 
 const me = async (req, res) => {
     try {
-        let user = await UserModel.findById(req.userId).select('username').exec();
+        let user = await CustomerModel.findById(req.userId).exec();
 
         if (!user) return res.status(404).json({
             error: 'Not Found',
@@ -102,10 +117,32 @@ const logout = (req, res) => {
     res.status(200).send({ token: null });
 };
 
+const update = (req, res) => {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "The request body is empty",
+      });
+    }
+  
+    CustomerModel.findByIdAndUpdate(req.userId, req.body, {
+      new: true,
+      runValidators: true,
+    })
+      .exec()
+      .then((entity) => res.status(200).json(entity))
+      .catch((error) =>
+        res.status(500).json({
+          error: "Internal server error",
+          message: error.message,
+        })
+      );
+  };
 
 module.exports = {
     login,
     register,
     logout,
-    me
+    me,
+    update
 };
