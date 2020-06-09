@@ -7,7 +7,7 @@ const middlewares    = require('../middlewares');
 const OfferController = require('../controllers/offer');
 
 
-router.get('/', OfferController.list); // List all offers
+router.get('/', middlewares.checkAuthentication, OfferController.list); // List all offers
 router.post('/', middlewares.checkAuthentication, OfferController.create); // Create a new offer
 router.get('/:id', middlewares.checkAuthentication, OfferController.read); // Read an offer by Id
 // router.get('/user/:userid', middlewares.checkAuthentication, OfferController.read); // Read an offer by Owner Id

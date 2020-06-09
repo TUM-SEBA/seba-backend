@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const OfferSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Customer",
   },
   approveBiddingRequestId: {
     type: String,
