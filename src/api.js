@@ -10,6 +10,7 @@ const auth  = require('./routes/auth');
 const entity = require('./routes/entity');
 const review = require('./routes/review');
 const offer = require('./routes/offer');
+const biddingrequest = require('./routes/biddingrequest');
 
 
 const api = express();
@@ -33,6 +34,7 @@ api.use('/auth'  , auth);
 api.use('/entity', entity);
 api.use('/review', review);
 api.use('/offer', offer);
+api.use('/biddingrequest', biddingrequest)
 
 
 module.exports = api;

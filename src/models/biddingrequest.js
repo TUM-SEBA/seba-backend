@@ -10,7 +10,7 @@ const BiddingRequestSchema = new mongoose.Schema({
   },
   caretaker: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer' // TODO might have to change to Caretaker.
+    ref: 'Customer'
   },
   createdDate: {
     type: Date,
