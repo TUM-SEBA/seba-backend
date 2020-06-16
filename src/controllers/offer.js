@@ -1,6 +1,7 @@
 "use strict";
 
 const OfferModel = require("../models/offer");
+const CustomerModel = require("../models/customer");
 
 const create = (req, res) => {
   if (Object.keys(req.body).length === 0)
@@ -89,10 +90,33 @@ const list = (req, res) => {
     );
 };
 
+const listByUsername = async (req, res) => {
+  const username = req.params.username;
+  const customer = await CustomerModel.findOne({username}).exec();
+  const interestedOffers = [];
+  customer.interestedOffers.forEach(interestedOffer => {
+    interestedOffers.push(interestedOffer._id.toString());
+  });
+  OfferModel.find({
+    _id: {$nin: interestedOffers}
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
   update,
   remove,
   list,
+  listByUsername
 };
