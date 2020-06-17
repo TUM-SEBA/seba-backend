@@ -14,9 +14,13 @@ const BiddingRequestSchema = new mongoose.Schema({
   },
   createdDate: {
     type: Date,
+    default: Date.now,
   },
   price: {
     type: Number,
+  },
+  remarks: {
+    type: String,
   },
 });
 

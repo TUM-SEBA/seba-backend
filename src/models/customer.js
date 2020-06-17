@@ -33,7 +33,8 @@ const CustomerSchema = new mongoose.Schema({
   badgesEarned: {
     type: [{ badgeId: mongoose.Schema.Types.ObjectId, date: Date }],
     ref: "Badge",
-  }
+  },
+  interestedOffers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Offer' }]
 });
 
 CustomerSchema.set("versionKey", false);
