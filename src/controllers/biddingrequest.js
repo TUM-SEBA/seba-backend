@@ -10,14 +10,6 @@ const create = async (req, res) => {
       message: "The request body is empty",
     });
   const username = req.body['caretaker'];
-  await CustomerModel.update(
-    {username: username},
-    {
-      $set: {},
-      $addToSet: {interestedOffers: req.body['offer']}
-    },
-    {upsert: true},
-  ).exec();
   const customer = await CustomerModel.findOne({username}).exec();
   let biddingRequest = req.body;
   biddingRequest['caretaker'] = customer._id.toString();

@@ -1,6 +1,7 @@
 "use strict";
 
 const OfferModel = require("../models/offer");
+const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
 
 const create = (req, res) => {
@@ -93,9 +94,14 @@ const list = (req, res) => {
 const listByUsername = async (req, res) => {
   const username = req.params.username;
   const customer = await CustomerModel.findOne({username}).exec();
+  const customerId = customer._id.toString();
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const biddingRequests = await BiddingRequestModel.find({
+    'caretaker': ObjectId(customerId)
+  }).exec();
   const interestedOffers = [];
-  customer.interestedOffers.forEach(interestedOffer => {
-    interestedOffers.push(interestedOffer._id.toString());
+  biddingRequests.forEach(biddingRequest => {
+    interestedOffers.push(biddingRequest.offer._id.toString());
   });
   OfferModel.find({
     _id: {$nin: interestedOffers}
