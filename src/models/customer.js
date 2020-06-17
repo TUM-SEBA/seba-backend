@@ -21,6 +21,18 @@ const CustomerSchema = new mongoose.Schema({
   },
   address: {
     type: String
+  },
+  feedbacksGiven: {
+    type: Number,
+    default: 0
+  },
+  starsRecieved: {
+    type: Number,
+    default: 0
+  },
+  badgesEarned: {
+    type: [{ badgeId: mongoose.Schema.Types.ObjectId, date: Date }],
+    ref: "Badge",
   }
 });
 
