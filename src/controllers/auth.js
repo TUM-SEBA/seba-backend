@@ -5,6 +5,7 @@ const bcrypt     = require('bcryptjs');
 
 const config     = require('../config');
 const CustomerModel  = require('../models/customer');
+const BadgeModel = require('../models/badge');
 
 
 const login = async (req,res) => {
@@ -139,10 +140,41 @@ const update = (req, res) => {
       );
   };
 
+const mybadges = (req, res) => {
+    const badges = [];
+    CustomerModel.findById(req.userId)
+      .exec()
+      .then(async (user) => {
+        if (!user)
+            return res.status(404).json({
+                error: "Not Found",
+                message: `User not found`,
+            });
+        
+        Promise.all(user.badgesEarned.map(badgeEarned => {
+            return BadgeModel.findById(badgeEarned.badgeId)
+                .exec()
+                .then((badge) => {
+                    badges.push({"badge": badge, date: badgeEarned.date}); 
+                })
+        }))
+        .then(() => {
+            res.status(200).json(badges)
+        })
+      })
+      .catch((error) =>
+        res.status(500).json({
+          error: "Internal server error",
+          message: error.message,
+        })
+      );  
+};
+
 module.exports = {
     login,
     register,
     logout,
     me,
-    update
+    update,
+    mybadges
 };

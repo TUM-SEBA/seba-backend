@@ -10,15 +10,15 @@ const auth  = require('./routes/auth');
 const entity = require('./routes/entity');
 const review = require('./routes/review');
 const offer = require('./routes/offer');
+const badge = require('./routes/badge');
 const biddingrequest = require('./routes/biddingrequest');
-
 
 const api = express();
 
 // Adding Basic Middlewares
 api.use(helmet());
-api.use(bodyParser.json());
-api.use(bodyParser.urlencoded({ extended: false }));
+api.use(bodyParser.json({limit : "50mb"}));
+api.use(bodyParser.urlencoded({ limit : "50mb", extended: false }));
 api.use(middlewares.allowCrossDomain);
 
 
@@ -34,7 +34,7 @@ api.use('/auth'  , auth);
 api.use('/entity', entity);
 api.use('/review', review);
 api.use('/offer', offer);
+api.use('/badge', badge);
 api.use('/biddingrequest', biddingrequest)
-
 
 module.exports = api;
