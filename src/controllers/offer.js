@@ -5,6 +5,18 @@ const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
 
 const create = (req, res) => {
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'owner')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'startDate')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'endDate')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
   if (Object.keys(req.body).length === 0)
     return res.status(400).json({
       error: "Bad Request",
@@ -69,7 +81,7 @@ const remove = (req, res) => {
     .then(() =>
       res
         .status(200)
-        .json({ message: `offer with id${req.params.id} was deleted` })
+        .json({message: `offer with id${req.params.id} was deleted`})
     )
     .catch((error) =>
       res.status(500).json({
