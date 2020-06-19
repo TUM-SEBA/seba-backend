@@ -16,11 +16,20 @@ const CustomerSchema = new mongoose.Schema({
   name: {
     type: String,
   },
+  email: {
+    type:String,
+    required: true,
+    unique: true,
+  },
   phoneNumber: {
     type: String
   },
   address: {
     type: String
+  },
+  confirmed: {
+    type: Boolean,
+    default: false
   },
   feedbacksGiven: {
     type: Number,
