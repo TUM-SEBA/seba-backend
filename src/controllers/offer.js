@@ -1,8 +1,22 @@
 "use strict";
 
 const OfferModel = require("../models/offer");
+const BiddingRequestModel = require("../models/biddingrequest");
+const CustomerModel = require("../models/customer");
 
 const create = (req, res) => {
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'owner')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'startDate')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'endDate')) return res.status(400).json({
+    error: 'Bad Request',
+    message: 'The request body must contain a owner property'
+  });
   if (Object.keys(req.body).length === 0)
     return res.status(400).json({
       error: "Bad Request",
@@ -67,7 +81,7 @@ const remove = (req, res) => {
     .then(() =>
       res
         .status(200)
-        .json({ message: `offer with id${req.params.id} was deleted` })
+        .json({message: `offer with id${req.params.id} was deleted`})
     )
     .catch((error) =>
       res.status(500).json({
@@ -89,10 +103,38 @@ const list = (req, res) => {
     );
 };
 
+const listByUsername = async (req, res) => {
+  const username = req.params.username;
+  const customer = await CustomerModel.findOne({username}).exec();
+  const customerId = customer._id.toString();
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const biddingRequests = await BiddingRequestModel.find({
+    'caretaker': ObjectId(customerId)
+  }).exec();
+  const interestedOffers = [];
+  biddingRequests.forEach(biddingRequest => {
+    interestedOffers.push(biddingRequest.offer._id.toString());
+  });
+  OfferModel.find({
+    _id: {$nin: interestedOffers}
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
   update,
   remove,
   list,
+  listByUsername
 };
