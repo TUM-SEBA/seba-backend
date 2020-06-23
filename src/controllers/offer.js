@@ -130,11 +130,40 @@ const listByUsername = async (req, res) => {
     );
 };
 
+const accept = (req, res) => {
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      error: "Bad Request",
+      message: "The request body is empty",
+    });
+  }
+
+  OfferModel.findByIdAndUpdate(req.params.id, {
+    $set: {
+      status: "ASSIGNED",
+      approveBiddingRequestId: req.body['approveBiddingRequestId'],
+      insurance: req.body['insurance']
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => res.status(200).json(offer))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
   update,
   remove,
   list,
-  listByUsername
+  listByUsername,
+  accept,
 };

@@ -35,6 +35,7 @@ const create = async (req, res) => {
 
 const read = (req, res) => {
   BiddingRequestModel.findById(req.params.id)
+    .populate('offer')
     .exec()
     .then((biddingRequest) => {
       if (!biddingRequest)
@@ -103,10 +104,29 @@ const list = (req, res) => {
     );
 };
 
+const listByOffer = (req, res) => {
+  const offerId = req.params.id;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  BiddingRequestModel.find({
+    'offer': ObjectId(offerId)
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
   update,
   remove,
   list,
+  listByOffer,
 };
