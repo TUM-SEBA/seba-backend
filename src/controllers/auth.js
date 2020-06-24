@@ -52,7 +52,7 @@ const login = async (req,res) => {
             expiresIn: 86400 // expires in 24 hours
         });
 
-        return res.status(200).json({token: token, id: user._id});
+        return res.status(200).json({token: token, id: user._id, shouldChangePassword: user.shouldChangePassword});
     } catch(err) {
         return res.status(404).json({
             error: 'User Not Found',
@@ -138,20 +138,40 @@ const register = async (req,res) => {
 };
 
 const confirm = async (req, res) => {
+    let welcomeBadge = null;
     jwt.verify(req.params.token, config.JwtSecret, async (err, decoded) => {
         if (err) return res.status(401).send({
             error: 'Unauthorized',
             message: 'Failed to authenticate token.'
         });
-        await CustomerModel.where({ _id: decoded.id }).updateOne({ confirmed: true }, (err) => {
-            if (err) return res.status(400).send({
+
+        try {
+            welcomeBadge = await BadgeModel.findOne({ name: "Welcome Aboard" }).exec();
+            if(!welcomeBadge) {
+                //Create a badge if it does not exist
+                const newBadge = { 
+                    name: "Welcome Aboard", 
+                    description: "Award for joining the community",
+                    image: config.badgeImage
+                }
+                welcomeBadge = await BadgeModel.create(newBadge);
+            }
+            let user = await CustomerModel.findById(decoded.id).exec();
+            if (!user.badgesEarned.some(badge => badge.badgeId.equals(welcomeBadge._id)))
+                //Award a welcome badge to the user
+                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true, badgesEarned: [...user.badgesEarned, {badgeId: welcomeBadge._id, date: Date()}], newBadgeRecived: true }).exec();
+            else 
+                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true}).exec();
+        } catch (err) {
+            return res.status(400).send({
                 error: 'Invalid User',
                 message: 'Failed to authenticate user.'
             });
-            res.redirect(config.webserver);
-        });
+        }
+    res.redirect(config.webserver);
     });
-}
+};
+
 
 const forgotPass = async (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'email')) return res.status(400).json({
@@ -161,13 +181,13 @@ const forgotPass = async (req, res) => {
 
     let user = await CustomerModel.findOne({ email: req.body.email }).exec();
     if (!user) {
-        return res.status(400).send({
-            error: 'Email Invalid',
-            message: 'Email does not exist in our database!'
+        //Fake update: So that the user does not know the email Id's present in our system
+        return res.status(200).json({
+            message: 'Your password is updated!!',
         });
     }
     const newPassword = crypto.randomBytes(20).toString('hex');
-    await CustomerModel.where({ _id: user._id }).updateOne({password: bcrypt.hashSync(newPassword, 8)}).exec();
+    await CustomerModel.where({ _id: user._id }).updateOne({password: bcrypt.hashSync(newPassword, 8), shouldChangePassword: true}).exec();
     const mailOptions = {
         from: '"Team Care4Flora&Fauna" <sebateam55@gmail.com>', // sender address
         to: user.email, // list of receivers
@@ -260,6 +280,60 @@ const mybadges = (req, res) => {
       );  
 };
 
+const checkForNewBadge = async (req, res) => {
+    let badge = null;
+    try {
+        let user = await CustomerModel.findById(req.userId).exec();
+
+        if (!user) return res.status(404).json({
+            error: 'Not Found',
+            message: `User not found`
+        });
+
+        if (user.newBadgeRecived) {
+            const latestUserBadge = user.badgesEarned.pop();
+            badge = await BadgeModel.findById(latestUserBadge.badgeId).exec();
+            await CustomerModel.where({ _id: user._id }).updateOne({newBadgeRecived: false}).exec();
+        }
+        return res.status(200).json(badge);
+    } catch(err) {
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message
+        });
+    }
+}
+
+const changePassword = async (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'currentPassword')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a currentPassword property'
+    });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'newPassword')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a newPassword property'
+    });
+
+    let user = await CustomerModel.findOne({_id: req.userId}).exec();
+    const isPasswordValid = bcrypt.compareSync(req.body.currentPassword, user.password);
+        if (!isPasswordValid) return res.status(401).json({
+            error: 'Incorrect Password',
+            message: 'The Password you entered is incorrect!'
+        });
+    try {
+        await CustomerModel.where({ _id: req.userId }).updateOne({password: bcrypt.hashSync(req.body.newPassword, 8), shouldChangePassword: false}).exec();
+        res.status(200).json({
+            message: 'Your password is updated!!',
+        });
+    } catch(err) {
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message
+        });
+    }
+}
+
 module.exports = {
     login,
     register,
@@ -267,6 +341,8 @@ module.exports = {
     me,
     update,
     mybadges,
+    checkForNewBadge,
     confirm,
-    forgotPass
+    forgotPass,
+    changePassword
 };
