@@ -215,7 +215,13 @@ const me = async (req, res) => {
             message: `User not found`
         });
 
-        return res.status(200).json(user);
+        let userProfile = {
+            name: user.name,
+            phoneNumber: user.phoneNumber,
+            address: user.address
+        }
+
+        return res.status(200).json(userProfile);
     } catch(err) {
         return res.status(500).json({
             error: 'Internal Server Error',

@@ -47,7 +47,7 @@ const CustomerSchema = new mongoose.Schema({
     type: [{ badgeId: mongoose.Schema.Types.ObjectId, date: Date }],
     ref: "Badge",
   },
-  newBadgeRecived: {
+  newBadgeRecieved: {
     type: Boolean,
     default: false
   }
