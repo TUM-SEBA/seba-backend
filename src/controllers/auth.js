@@ -280,6 +280,30 @@ const mybadges = (req, res) => {
       );  
 };
 
+const checkForNewBadge = async (req, res) => {
+    let badge = null;
+    try {
+        let user = await CustomerModel.findById(req.userId).exec();
+
+        if (!user) return res.status(404).json({
+            error: 'Not Found',
+            message: `User not found`
+        });
+
+        if (user.newBadgeRecived) {
+            const latestUserBadge = user.badgesEarned.pop();
+            badge = await BadgeModel.findById(latestUserBadge.badgeId).exec();
+            await CustomerModel.where({ _id: user._id }).updateOne({newBadgeRecived: false}).exec();
+        }
+        return res.status(200).json(badge);
+    } catch(err) {
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message
+        });
+    }
+}
+
 const changePassword = async (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'currentPassword')) return res.status(400).json({
         error: 'Bad Request',
@@ -317,6 +341,7 @@ module.exports = {
     me,
     update,
     mybadges,
+    checkForNewBadge,
     confirm,
     forgotPass,
     changePassword
