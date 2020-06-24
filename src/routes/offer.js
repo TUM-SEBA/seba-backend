@@ -13,6 +13,7 @@ router.post('/', middlewares.checkAuthentication, OfferController.create); // Cr
 router.get('/:id', middlewares.checkAuthentication, OfferController.read); // Read an offer by Id
 // router.get('/user/:userid', middlewares.checkAuthentication, OfferController.read); // Read an offer by Owner Id
 router.put('/:id', middlewares.checkAuthentication, OfferController.update); // Update an offer by Id
+router.put('/accept/:id', middlewares.checkAuthentication, OfferController.accept); // Update an offer by Id
 router.delete('/:id', middlewares.checkAuthentication, OfferController.remove); // Delete an offer by Id
 
 

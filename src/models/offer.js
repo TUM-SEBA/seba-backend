@@ -4,6 +4,9 @@ const mongoose = require("mongoose");
 
 // Define the offer schema
 const OfferSchema = new mongoose.Schema({
+  offerNumber: {
+    type: String,
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
@@ -11,11 +14,11 @@ const OfferSchema = new mongoose.Schema({
   approveBiddingRequestId: {
     type: String,
   },
-  entityId: {
+  entity: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Entity",
   },
-  reviewId: {
+  review: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Review",
   },
