@@ -138,20 +138,40 @@ const register = async (req,res) => {
 };
 
 const confirm = async (req, res) => {
+    let welcomeBadge = null;
     jwt.verify(req.params.token, config.JwtSecret, async (err, decoded) => {
         if (err) return res.status(401).send({
             error: 'Unauthorized',
             message: 'Failed to authenticate token.'
         });
-        await CustomerModel.where({ _id: decoded.id }).updateOne({ confirmed: true }, (err) => {
-            if (err) return res.status(400).send({
+
+        try {
+            welcomeBadge = await BadgeModel.findOne({ name: "Welcome Aboard" }).exec();
+            if(!welcomeBadge) {
+                //Create a badge if it does not exist
+                const newBadge = { 
+                    name: "Welcome Aboard", 
+                    description: "Award for joining the community",
+                    image: config.badgeImage
+                }
+                welcomeBadge = await BadgeModel.create(newBadge);
+            }
+            let user = await CustomerModel.findById(decoded.id).exec();
+            if (!user.badgesEarned.some(badge => badge.badgeId.equals(welcomeBadge._id)))
+                //Award a welcome badge to the user
+                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true, badgesEarned: [...user.badgesEarned, {badgeId: welcomeBadge._id, date: Date()}], newBadgeRecived: true }).exec();
+            else 
+                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true}).exec();
+        } catch (err) {
+            return res.status(400).send({
                 error: 'Invalid User',
                 message: 'Failed to authenticate user.'
             });
-            res.redirect(config.webserver);
-        });
+        }
+    res.redirect(config.webserver);
     });
-}
+};
+
 
 const forgotPass = async (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'email')) return res.status(400).json({
@@ -287,7 +307,7 @@ const changePassword = async (req, res) => {
             error: 'Internal Server Error',
             message: err.message
         });
-}
+    }
 }
 
 module.exports = {
