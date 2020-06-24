@@ -159,7 +159,7 @@ const confirm = async (req, res) => {
             let user = await CustomerModel.findById(decoded.id).exec();
             if (!user.badgesEarned.some(badge => badge.badgeId.equals(welcomeBadge._id)))
                 //Award a welcome badge to the user
-                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true, badgesEarned: [...user.badgesEarned, {badgeId: welcomeBadge._id, date: Date()}], newBadgeRecived: true }).exec();
+                await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true, badgesEarned: [...user.badgesEarned, {badgeId: welcomeBadge._id, date: Date()}], newBadgeRecieved: true }).exec();
             else 
                 await CustomerModel.where({ _id: user.id }).updateOne({ confirmed: true}).exec();
         } catch (err) {
@@ -296,10 +296,10 @@ const checkForNewBadge = async (req, res) => {
             message: `User not found`
         });
 
-        if (user.newBadgeRecived) {
+        if (user.newBadgeRecieved) {
             const latestUserBadge = user.badgesEarned.pop();
             badge = await BadgeModel.findById(latestUserBadge.badgeId).exec();
-            await CustomerModel.where({ _id: user._id }).updateOne({newBadgeRecived: false}).exec();
+            await CustomerModel.where({ _id: user._id }).updateOne({newBadgeRecieved: false}).exec();
         }
         return res.status(200).json(badge);
     } catch(err) {
