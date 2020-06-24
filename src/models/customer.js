@@ -31,6 +31,10 @@ const CustomerSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  shouldChangePassword: {
+    type: Boolean,
+    default: false
+  },
   feedbacksGiven: {
     type: Number,
     default: 0
@@ -42,6 +46,10 @@ const CustomerSchema = new mongoose.Schema({
   badgesEarned: {
     type: [{ badgeId: mongoose.Schema.Types.ObjectId, date: Date }],
     ref: "Badge",
+  },
+  newBadgeRecived: {
+    type: Boolean,
+    default: false
   }
 });
 

@@ -52,7 +52,7 @@ const login = async (req,res) => {
             expiresIn: 86400 // expires in 24 hours
         });
 
-        return res.status(200).json({token: token, id: user._id});
+        return res.status(200).json({token: token, id: user._id, shouldChangePassword: user.shouldChangePassword});
     } catch(err) {
         return res.status(404).json({
             error: 'User Not Found',
@@ -161,13 +161,13 @@ const forgotPass = async (req, res) => {
 
     let user = await CustomerModel.findOne({ email: req.body.email }).exec();
     if (!user) {
-        return res.status(400).send({
-            error: 'Email Invalid',
-            message: 'Email does not exist in our database!'
+        //Fake update: So that the user does not know the email Id's present in our system
+        return res.status(200).json({
+            message: 'Your password is updated!!',
         });
     }
     const newPassword = crypto.randomBytes(20).toString('hex');
-    await CustomerModel.where({ _id: user._id }).updateOne({password: bcrypt.hashSync(newPassword, 8)}).exec();
+    await CustomerModel.where({ _id: user._id }).updateOne({password: bcrypt.hashSync(newPassword, 8), shouldChangePassword: true}).exec();
     const mailOptions = {
         from: '"Team Care4Flora&Fauna" <sebateam55@gmail.com>', // sender address
         to: user.email, // list of receivers
@@ -260,6 +260,36 @@ const mybadges = (req, res) => {
       );  
 };
 
+const changePassword = async (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'currentPassword')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a currentPassword property'
+    });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'newPassword')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a newPassword property'
+    });
+
+    let user = await CustomerModel.findOne({_id: req.userId}).exec();
+    const isPasswordValid = bcrypt.compareSync(req.body.currentPassword, user.password);
+        if (!isPasswordValid) return res.status(401).json({
+            error: 'Incorrect Password',
+            message: 'The Password you entered is incorrect!'
+        });
+    try {
+        await CustomerModel.where({ _id: req.userId }).updateOne({password: bcrypt.hashSync(req.body.newPassword, 8), shouldChangePassword: false}).exec();
+        res.status(200).json({
+            message: 'Your password is updated!!',
+        });
+    } catch(err) {
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message
+        });
+}
+}
+
 module.exports = {
     login,
     register,
@@ -268,5 +298,6 @@ module.exports = {
     update,
     mybadges,
     confirm,
-    forgotPass
+    forgotPass,
+    changePassword
 };

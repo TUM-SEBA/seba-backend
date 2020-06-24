@@ -12,6 +12,7 @@ router.get('/confirm/:token', AuthController.confirm);
 router.get('/me', middlewares.checkAuthentication, AuthController.me);
 router.get('/mybadges', middlewares.checkAuthentication, AuthController.mybadges);
 router.put('/forgotPass', AuthController.forgotPass);
+router.put('/changePassword', middlewares.checkAuthentication, AuthController.changePassword);
 router.put('/update', middlewares.checkAuthentication, AuthController.update);
 router.get('/logout', middlewares.checkAuthentication, AuthController.logout);
 
