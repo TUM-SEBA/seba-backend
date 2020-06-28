@@ -158,6 +158,24 @@ const accept = (req, res) => {
     );
 };
 
+const listByOwnerId = (req, res) => {
+  const ownerId = req.params.id;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  OfferModel.find({
+    'owner': ObjectId(ownerId)
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
@@ -166,4 +184,5 @@ module.exports = {
   list,
   listByUsername,
   accept,
+  listByOwnerId,
 };
