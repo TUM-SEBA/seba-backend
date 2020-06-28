@@ -40,6 +40,9 @@ const OfferSchema = new mongoose.Schema({
   insurance: {
     type: Boolean,
   },
+  title: {
+    type: String,
+  },
 });
 
 // Export the Offer model
