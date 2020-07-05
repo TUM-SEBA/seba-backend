@@ -52,14 +52,8 @@ const CustomerSchema = new mongoose.Schema({
     default: false
   },
   notInterestedOffers: [{
-    owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
-    },
-    offer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Offer",
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Offer",
   }]
 });
 
