@@ -4,6 +4,11 @@ const OfferModel = require("../models/offer");
 const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
 
+const Status = {
+  ASSIGNED: "Assigned",
+  NOT_ASSIGNED: "Not Assigned",
+};
+
 const create = (req, res) => {
   if (!Object.prototype.hasOwnProperty.call(req.body, 'owner')) return res.status(400).json({
     error: 'Bad Request',
@@ -23,7 +28,9 @@ const create = (req, res) => {
       message: "The request body is empty",
     });
 
-  OfferModel.create(req.body)
+  const offer = req.body;
+  offer.status = Status.ASSIGNED;
+  OfferModel.create(offer)
     .then((offer) => res.status(201).json(offer))
     .catch((error) =>
       res.status(500).json({
