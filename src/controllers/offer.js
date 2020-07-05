@@ -119,20 +119,21 @@ const listAvailable = async (req, res) => {
   }).exec();
   const interestedOfferIds = [];
   biddingRequests.forEach(biddingRequest => {
-    interestedOfferIds.push(biddingRequest.offer._id.toString());
+    interestedOfferIds.push(biddingRequest._id.toString());
   });
 
   // Retrieve not interested offers
   const customer = await CustomerModel.findById(req.userId).exec();
   const notInterestedOfferIds = [];
   customer.notInterestedOffers.forEach(notInterestedOffer => {
-    notInterestedOfferIds.push(notInterestedOffer.offer._id.toString());
+    notInterestedOfferIds.push(notInterestedOffer._id.toString());
   });
 
   const notAvailableOfferIds = interestedOfferIds.concat(notInterestedOfferIds);
 
   OfferModel.find({
-    _id: {$nin: notAvailableOfferIds}
+    _id: {$nin: notAvailableOfferIds},
+    owner: {$ne: req.userId}
   })
     .populate("owner")
     .exec()
@@ -154,10 +155,11 @@ const listInterested = async (req, res) => {
   }).exec();
   const interestedOfferIds = [];
   interestedBiddingRequests.forEach(biddingRequest => {
-    interestedOfferIds.push(biddingRequest.offer._id.toString());
+    interestedOfferIds.push(biddingRequest._id.toString());
   });
   OfferModel.find({
-    _id: {$in: interestedOfferIds}
+    _id: {$in: interestedOfferIds},
+    owner: {$ne: req.userId}
   })
     .populate("owner")
     .exec()
@@ -174,16 +176,23 @@ const listInterested = async (req, res) => {
 
 const listNotInterested = async (req, res) => {
   CustomerModel.findById(req.userId)
-    .populate("notInterestedOffers.offer")
-    .populate("notInterestedOffers.owner")
+    .populate({
+      path: "notInterestedOffers",
+      model: "Offer",
+    })
     .exec()
     .then((customer) => {
-      const notInterestedOffers = customer.notInterestedOffers.map(notInterestedOffer => {
-        const offer = notInterestedOffer.offer;
-        offer.owner = notInterestedOffer.owner;
-        return offer;
-      });
-      return res.status(200).json(notInterestedOffers);
+      CustomerModel.populate(customer, {
+          path: 'notInterestedOffers.owner',
+          model: 'Customer'
+        }).then(customer => {
+          return res.status(200).json(customer.notInterestedOffers);
+        }).catch((error) =>
+          res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+          })
+        );
     })
     .catch((error) =>
       res.status(500).json({
@@ -223,20 +232,19 @@ const accept = (req, res) => {
 
 const updateNotInterested = async (req, res) => {
 
-  const offer = await OfferModel.findById(req.params.id).exec();
+  const ObjectId = require('mongoose').Types.ObjectId;
   CustomerModel.findByIdAndUpdate(req.userId, {
     $addToSet: {
-      notInterestedOffers: {
-        owner: offer.owner._id,
-        offer: req.params.id
-      },
+      notInterestedOffers: req.params.id,
     }
   }, {
     new: true,
     runValidators: true,
   })
     .exec()
-    .then((customer) => res.status(200).json(customer.notInterestedOffers))
+    .then((customer) => {
+      res.status(200).json(customer.notInterestedOffers)
+    })
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
