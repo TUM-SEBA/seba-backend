@@ -103,24 +103,80 @@ const list = (req, res) => {
     );
 };
 
-const listByUsername = async (req, res) => {
-  const username = req.params.username;
-  const customer = await CustomerModel.findOne({username}).exec();
-  const customerId = customer._id.toString();
+const listAvailable = async (req, res) => {
+
+  // Retrieve interested offers
   const ObjectId = require('mongoose').Types.ObjectId;
   const biddingRequests = await BiddingRequestModel.find({
-    'caretaker': ObjectId(customerId)
+    'caretaker': ObjectId(req.userId)
   }).exec();
-  const interestedOffers = [];
+  const interestedOfferIds = [];
   biddingRequests.forEach(biddingRequest => {
-    interestedOffers.push(biddingRequest.offer._id.toString());
+    interestedOfferIds.push(biddingRequest.offer._id.toString());
   });
+
+  // Retrieve not interested offers
+  const customer = await CustomerModel.findById(req.userId).exec();
+  const notInterestedOfferIds = [];
+  customer.notInterestedOffers.forEach(notInterestedOffer => {
+    notInterestedOfferIds.push(notInterestedOffer.offer._id.toString());
+  });
+
+  const notAvailableOfferIds = interestedOfferIds.concat(notInterestedOfferIds);
+
   OfferModel.find({
-    _id: {$nin: interestedOffers}
+    _id: {$nin: notAvailableOfferIds}
   })
+    .populate("owner")
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const listInterested = async (req, res) => {
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const interestedBiddingRequests = await BiddingRequestModel.find({
+    'caretaker': ObjectId(req.userId)
+  }).exec();
+  const interestedOfferIds = [];
+  interestedBiddingRequests.forEach(biddingRequest => {
+    interestedOfferIds.push(biddingRequest.offer._id.toString());
+  });
+  OfferModel.find({
+    _id: {$in: interestedOfferIds}
+  })
+    .populate("owner")
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const listNotInterested = async (req, res) => {
+  CustomerModel.findById(req.userId)
+    .populate("notInterestedOffers.offer")
+    .populate("notInterestedOffers.owner")
+    .exec()
+    .then((customer) => {
+      const notInterestedOffers = customer.notInterestedOffers.map(notInterestedOffer => {
+        const offer = notInterestedOffer.offer;
+        offer.owner = notInterestedOffer.owner;
+        return offer;
+      });
+      return res.status(200).json(notInterestedOffers);
     })
     .catch((error) =>
       res.status(500).json({
@@ -158,6 +214,30 @@ const accept = (req, res) => {
     );
 };
 
+const updateNotInterested = async (req, res) => {
+
+  const offer = await OfferModel.findById(req.params.id).exec();
+  CustomerModel.findByIdAndUpdate(req.userId, {
+    $addToSet: {
+      notInterestedOffers: {
+        owner: offer.owner._id,
+        offer: req.params.id
+      },
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((customer) => res.status(200).json(customer.notInterestedOffers))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 const listByOwnerId = (req, res) => {
   const ownerId = req.params.id;
   const ObjectId = require('mongoose').Types.ObjectId;
@@ -182,7 +262,10 @@ module.exports = {
   update,
   remove,
   list,
-  listByUsername,
+  listAvailable,
+  listInterested,
+  listNotInterested,
   accept,
+  updateNotInterested,
   listByOwnerId,
 };

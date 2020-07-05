@@ -50,7 +50,17 @@ const CustomerSchema = new mongoose.Schema({
   newBadgeRecieved: {
     type: Boolean,
     default: false
-  }
+  },
+  notInterestedOffers: [{
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
+    offer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Offer",
+    },
+  }]
 });
 
 CustomerSchema.set("versionKey", false);
