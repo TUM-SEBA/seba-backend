@@ -119,14 +119,18 @@ const listAvailable = async (req, res) => {
   }).exec();
   const interestedOfferIds = [];
   biddingRequests.forEach(biddingRequest => {
-    interestedOfferIds.push(biddingRequest._id.toString());
+    if (biddingRequest.offer._id) {
+      interestedOfferIds.push(biddingRequest.offer._id.toString());
+    }
   });
 
   // Retrieve not interested offers
   const customer = await CustomerModel.findById(req.userId).exec();
   const notInterestedOfferIds = [];
   customer.notInterestedOffers.forEach(notInterestedOffer => {
-    notInterestedOfferIds.push(notInterestedOffer._id.toString());
+    if (notInterestedOffer._id) {
+      notInterestedOfferIds.push(notInterestedOffer._id.toString());
+    }
   });
 
   const notAvailableOfferIds = interestedOfferIds.concat(notInterestedOfferIds);
@@ -155,7 +159,9 @@ const listInterested = async (req, res) => {
   }).exec();
   const interestedOfferIds = [];
   interestedBiddingRequests.forEach(biddingRequest => {
-    interestedOfferIds.push(biddingRequest._id.toString());
+    if (biddingRequest.offer._id) {
+      interestedOfferIds.push(biddingRequest.offer._id.toString());
+    }
   });
   OfferModel.find({
     _id: {$in: interestedOfferIds},
