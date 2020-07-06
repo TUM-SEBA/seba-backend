@@ -14,6 +14,9 @@ const EntitySchema = new mongoose.Schema({
   images: {
     type: [String],
   },
+  category: {
+    type: String,
+  },
   breed: {
     type: String,
   },
