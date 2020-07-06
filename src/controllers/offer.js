@@ -3,6 +3,7 @@
 const OfferModel = require("../models/offer");
 const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
+const EntityModel = require("../models/entity");
 
 const Status = {
   ASSIGNED: "Assigned",
@@ -27,11 +28,43 @@ const create = (req, res) => {
       error: "Bad Request",
       message: "The request body is empty",
     });
+  if (!req.files || req.files.images.length === 0) {
+    res.status(400).json({
+      error: 'Bad Request',
+      message: 'The request body must contain images'
+    })
+  }
 
-  const offer = req.body;
-  offer.status = Status.ASSIGNED;
-  OfferModel.create(offer)
-    .then((offer) => res.status(201).json(offer))
+  const images = [];
+  for (let i = 0; i < req.files.images.length; i++) {
+    let image = req.files.images[i];
+    let ext = (image.name.match(/\.([^.]*?)(?=\?|#|$)/) || [])[1];
+    let file_name = `${image.md5}.${ext}`;
+    images.push(file_name);
+    image.mv(`./public/${file_name}`);
+  }
+
+  const entity = {
+    owner: req.userId,
+    category: req.body.category,
+    images
+  };
+  EntityModel.create(entity)
+    .then((entity) => {
+      const offer = req.body;
+      offer.status = Status.NOT_ASSIGNED;
+      offer.entity = entity._id;
+      OfferModel.create(offer)
+        .then((offer) => {
+          res.status(201).json(offer)
+        })
+        .catch((error) =>
+          res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+          })
+        );
+    })
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
@@ -42,6 +75,8 @@ const create = (req, res) => {
 
 const read = (req, res) => {
   OfferModel.findById(req.params.id)
+    .populate("owner")
+    .populate("entity")
     .exec()
     .then((offer) => {
       if (!offer)
@@ -140,6 +175,7 @@ const listAvailable = async (req, res) => {
     owner: {$ne: req.userId}
   })
     .populate("owner")
+    .populate("entity")
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
@@ -168,6 +204,7 @@ const listInterested = async (req, res) => {
     owner: {$ne: req.userId}
   })
     .populate("owner")
+    .populate("entity")
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
@@ -192,7 +229,17 @@ const listNotInterested = async (req, res) => {
           path: 'notInterestedOffers.owner',
           model: 'Customer'
         }).then(customer => {
-          return res.status(200).json(customer.notInterestedOffers);
+          CustomerModel.populate(customer, {
+            path: 'notInterestedOffers.entity',
+            model: 'Entity'
+          }).then(customer => {
+            return res.status(200).json(customer.notInterestedOffers);
+          }).catch((error) =>
+            res.status(500).json({
+              error: "Internal server error",
+              message: error.message,
+            })
+          );
         }).catch((error) =>
           res.status(500).json({
             error: "Internal server error",
@@ -218,7 +265,7 @@ const accept = (req, res) => {
 
   OfferModel.findByIdAndUpdate(req.params.id, {
     $set: {
-      status: "ASSIGNED",
+      status: Status.ASSIGNED,
       approveBiddingRequestId: req.body['approveBiddingRequestId'],
       insurance: req.body['insurance']
     }
