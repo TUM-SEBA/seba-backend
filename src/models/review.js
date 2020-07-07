@@ -9,10 +9,6 @@ const ReviewSchema  = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Offer'
   },
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer'
-  },
   caretaker: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer'
