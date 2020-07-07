@@ -172,7 +172,8 @@ const listAvailable = async (req, res) => {
 
   OfferModel.find({
     _id: {$nin: notAvailableOfferIds},
-    owner: {$ne: req.userId}
+    owner: {$ne: req.userId},
+    status: Status.NOT_ASSIGNED
   })
     .populate("owner")
     .populate("entity")
@@ -312,6 +313,7 @@ const listByOwnerId = (req, res) => {
   OfferModel.find({
     'owner': ObjectId(ownerId)
   })
+    .populate("entity")
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
