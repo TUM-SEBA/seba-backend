@@ -9,7 +9,9 @@ const create = (req, res) => {
       message: "The request body is empty",
     });
 
-  ReviewModel.create(req.body)
+  const review = req.body;
+  review.caretaker = req.userId;
+  ReviewModel.create(review)
     .then((review) => res.status(201).json(review))
     .catch((error) =>
       res.status(500).json({

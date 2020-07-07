@@ -110,6 +110,7 @@ const listByOffer = (req, res) => {
   BiddingRequestModel.find({
     'offer': ObjectId(offerId)
   })
+    .populate('caretaker')
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
