@@ -11,10 +11,6 @@ const Status = {
 };
 
 const create = (req, res) => {
-  if (!Object.prototype.hasOwnProperty.call(req.body, 'owner')) return res.status(400).json({
-    error: 'Bad Request',
-    message: 'The request body must contain a owner property'
-  });
   if (!Object.prototype.hasOwnProperty.call(req.body, 'startDate')) return res.status(400).json({
     error: 'Bad Request',
     message: 'The request body must contain a owner property'
@@ -54,6 +50,7 @@ const create = (req, res) => {
       const offer = req.body;
       offer.status = Status.NOT_ASSIGNED;
       offer.entity = entity._id;
+      offer.owner = entity.owner;
       OfferModel.create(offer)
         .then((offer) => {
           res.status(201).json(offer)
@@ -308,7 +305,7 @@ const updateNotInterested = async (req, res) => {
 };
 
 const listByOwnerId = (req, res) => {
-  const ownerId = req.params.id;
+  const ownerId = req.userId;
   const ObjectId = require('mongoose').Types.ObjectId;
   OfferModel.find({
     'owner': ObjectId(ownerId)

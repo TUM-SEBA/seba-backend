@@ -52,7 +52,7 @@ const login = async (req,res) => {
             expiresIn: 86400 // expires in 24 hours
         });
 
-        return res.status(200).json({token: token, id: user._id, shouldChangePassword: user.shouldChangePassword});
+        return res.status(200).json({token: token, shouldChangePassword: user.shouldChangePassword});
     } catch(err) {
         return res.status(404).json({
             error: 'User Not Found',
