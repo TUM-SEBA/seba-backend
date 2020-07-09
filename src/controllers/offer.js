@@ -177,9 +177,20 @@ const listInterested = async (req, res) => {
   })
     .populate("owner")
     .populate("entity")
+    .populate("approvedBiddingRequest")
     .exec()
     .then((offers) => {
-      return res.status(200).json(offers);
+      OfferModel.populate(offers, {
+        path: 'approvedBiddingRequest.caretaker',
+        model: 'Customer'
+      }).then(customer => {
+        return res.status(200).json(offers);
+      }).catch((error) =>
+        res.status(500).json({
+          error: "Internal server error",
+          message: error.message,
+        })
+      );
     })
     .catch((error) =>
       res.status(500).json({
@@ -238,7 +249,7 @@ const accept = (req, res) => {
   OfferModel.findByIdAndUpdate(req.params.id, {
     $set: {
       status: Status.ASSIGNED,
-      approveBiddingRequestId: req.body['approveBiddingRequestId'],
+      approvedBiddingRequest: req.body['approvedBiddingRequest'],
       approvedPrice: req.body['price'],
       insurance: req.body['insurance']
     }
@@ -247,7 +258,9 @@ const accept = (req, res) => {
     runValidators: true,
   })
     .exec()
-    .then((offer) => res.status(200).json(offer))
+    .then((offer) => {
+      return res.status(200).json(offer)
+    })
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
