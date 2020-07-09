@@ -16,6 +16,9 @@ router.get('/:id', middlewares.checkAuthentication, OfferController.read); // Re
 router.get('/user/listByOwnerId', middlewares.checkAuthentication, OfferController.listByOwnerId); // Read an offer by Owner Id
 router.put('/:id', middlewares.checkAuthentication, OfferController.update); // Update an offer by Id
 router.put('/accept/:id', middlewares.checkAuthentication, OfferController.accept); // Update an offer by Id
+router.put('/paymentPending/:id', middlewares.checkAuthentication, OfferController.paymentPending); // Update an offer by Id
+router.put('/completed/:id', middlewares.checkAuthentication, OfferController.completed); // Update an offer by Id
+router.put('/closed/:id', middlewares.checkAuthentication, OfferController.closed); // Update an offer by Id
 router.put('/not-interested/:id', middlewares.checkAuthentication, OfferController.updateNotInterested); // Update an offer by Id
 router.delete('/:id', middlewares.checkAuthentication, OfferController.remove); // Delete an offer by Id
 

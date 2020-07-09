@@ -8,6 +8,9 @@ const EntityModel = require("../models/entity");
 const Status = {
   ASSIGNED: "Assigned",
   NOT_ASSIGNED: "Not Assigned",
+  PAYMENT_PENDING: "Payment Pending",
+  COMPLETED: "Completed",
+  CLOSED: "Closed"
 };
 
 const create = (req, res) => {
@@ -265,7 +268,65 @@ const accept = (req, res) => {
     $set: {
       status: Status.ASSIGNED,
       approveBiddingRequestId: req.body['approveBiddingRequestId'],
+      approvedPrice: req.body['price'],
       insurance: req.body['insurance']
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => res.status(200).json(offer))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const paymentPending = (req, res) => {
+  OfferModel.findByIdAndUpdate(req.params.id, {
+    $set: {
+      status: Status.PAYMENT_PENDING
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => res.status(200).json(offer))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const completed = (req, res) => {
+  OfferModel.findByIdAndUpdate(req.params.id, {
+    $set: {
+      status: Status.COMPLETED
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => res.status(200).json(offer))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const closed = (req, res) => {
+  OfferModel.findByIdAndUpdate(req.params.id, {
+    $set: {
+      status: Status.CLOSED
     }
   }, {
     new: true,
@@ -335,4 +396,7 @@ module.exports = {
   accept,
   updateNotInterested,
   listByOwnerId,
+  paymentPending,
+  completed,
+  closed
 };

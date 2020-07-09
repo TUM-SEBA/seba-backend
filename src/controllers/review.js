@@ -1,6 +1,7 @@
 "use strict";
 
 const ReviewModel = require("../models/review");
+const CustomerModel = require("../models/customer");
 
 const create = (req, res) => {
   if (Object.keys(req.body).length === 0)
@@ -10,9 +11,23 @@ const create = (req, res) => {
     });
 
   const review = req.body;
-  review.caretaker = req.userId;
+  review.createdBy = req.userId;
   ReviewModel.create(review)
-    .then((review) => res.status(201).json(review))
+    .then((review) => {
+      //Update the caretaker stars for badges
+      CustomerModel.findByIdAndUpdate(req.body.caretaker, {
+        $inc: {
+          starsRecieved: req.body.rating,
+        }
+      }).exec();
+      //Update the owner stars for badges
+      CustomerModel.findByIdAndUpdate(req.userId, {
+        $inc: {
+          feedbacksGiven: 1,
+        }
+      }).exec();
+      res.status(201).json(review)
+    })
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
