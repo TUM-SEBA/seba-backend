@@ -47,7 +47,6 @@ const create = (req, res) => {
           feedbacksGiven: 1,
         }
       }).exec();
-      console.log("Hello")
       //Award Badges to the owner and caretaker if they reached milestones
       await awardBadges(req.userId, req.body.caretaker);
       res.status(201).json(review)
