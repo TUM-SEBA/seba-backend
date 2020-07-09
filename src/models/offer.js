@@ -11,8 +11,9 @@ const OfferSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
   },
-  approveBiddingRequestId: {
-    type: String,
+  approvedBiddingRequest: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "BiddingRequest",
   },
   approvedPrice: {
     type: Number,
