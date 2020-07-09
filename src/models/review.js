@@ -13,6 +13,10 @@ const ReviewSchema  = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer'
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer'
+  },
   text: {
     type: String,
   },

@@ -123,6 +123,40 @@ const listByOffer = (req, res) => {
     );
 };
 
+const getCaretakerFromBiddingRequest = (req, res) => {
+  let caretakerBody = {};
+  BiddingRequestModel.findById(req.params.id)
+    .exec()
+    .then((biddingRequest) => {
+      if (!biddingRequest)
+        return res.status(404).json({
+          error: "Not Found",
+          message: `Bidding Request not found`,
+        });
+      
+        CustomerModel.findById(biddingRequest.caretaker)
+        .exec()
+        .then((caretaker) => {
+          if (!caretaker)
+            return res.status(404).json({
+              error: "Not Found",
+              message: `Caretaker not found`,
+            });
+        caretakerBody = {
+          id: caretaker._id,
+          username: caretaker.username,
+        }
+        res.status(200).json(caretakerBody);
+      })
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
@@ -130,4 +164,5 @@ module.exports = {
   remove,
   list,
   listByOffer,
+  getCaretakerFromBiddingRequest
 };

@@ -14,6 +14,9 @@ const OfferSchema = new mongoose.Schema({
   approveBiddingRequestId: {
     type: String,
   },
+  approvedPrice: {
+    type: Number,
+  },
   entity: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Entity",
