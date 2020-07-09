@@ -8,6 +8,9 @@ const EntitySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
   },
+  name: {
+    type: String,
+  },
   description: {
     type: String,
   },
