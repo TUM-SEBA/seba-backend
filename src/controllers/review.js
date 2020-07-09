@@ -129,10 +129,29 @@ const list = (req, res) => {
     );
 };
 
+const listByOwnerId = (req, res) => {
+  const caretakerId = req.userId;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  ReviewModel.find({
+    'caretaker': ObjectId(caretakerId)
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
 module.exports = {
   create,
   read,
   update,
   remove,
   list,
+  listByOwnerId,
 };
