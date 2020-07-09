@@ -31,6 +31,7 @@ const create = (req, res) => {
 
   const entity = {
     owner: req.userId,
+    name: req.body.name,
     category: req.body.category,
     breed: req.body.breed,
     description: req.body.description,
@@ -101,6 +102,7 @@ const update = (req, res) => {
 
       const newEntity = {
         owner: req.userId,
+        name: req.body.name,
         category: req.body.category,
         breed: req.body.breed,
         description: req.body.description,

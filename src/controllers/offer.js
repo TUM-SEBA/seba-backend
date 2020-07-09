@@ -16,54 +16,25 @@ const Status = {
 const create = (req, res) => {
   if (!Object.prototype.hasOwnProperty.call(req.body, 'startDate')) return res.status(400).json({
     error: 'Bad Request',
-    message: 'The request body must contain a owner property'
+    message: 'The request body must contain a startDate property'
   });
   if (!Object.prototype.hasOwnProperty.call(req.body, 'endDate')) return res.status(400).json({
     error: 'Bad Request',
-    message: 'The request body must contain a owner property'
+    message: 'The request body must contain a endDate property'
   });
   if (Object.keys(req.body).length === 0)
     return res.status(400).json({
       error: "Bad Request",
       message: "The request body is empty",
     });
-  if (!req.files || req.files.images.length === 0) {
-    res.status(400).json({
-      error: 'Bad Request',
-      message: 'The request body must contain images'
-    })
-  }
 
-  const images = [];
-  for (let i = 0; i < req.files.images.length; i++) {
-    let image = req.files.images[i];
-    let ext = (image.name.match(/\.([^.]*?)(?=\?|#|$)/) || [])[1];
-    let file_name = `${image.md5}.${ext}`;
-    images.push(file_name);
-    image.mv(`./public/${file_name}`);
-  }
-
-  const entity = {
-    owner: req.userId,
-    category: req.body.category,
-    images
-  };
-  EntityModel.create(entity)
-    .then((entity) => {
-      const offer = req.body;
-      offer.status = Status.NOT_ASSIGNED;
-      offer.entity = entity._id;
-      offer.owner = entity.owner;
-      OfferModel.create(offer)
-        .then((offer) => {
-          res.status(201).json(offer)
-        })
-        .catch((error) =>
-          res.status(500).json({
-            error: "Internal server error",
-            message: error.message,
-          })
-        );
+  const offer = req.body;
+  offer.status = Status.NOT_ASSIGNED;
+  offer.entity = req.body.entity;
+  offer.owner = req.userId;
+  OfferModel.create(offer)
+    .then((offer) => {
+      res.status(201).json(offer)
     })
     .catch((error) =>
       res.status(500).json({
