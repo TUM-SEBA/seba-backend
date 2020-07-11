@@ -326,6 +326,25 @@ const closed = (req, res) => {
     );
 };
 
+const disablenotification = (req, res) => {
+  OfferModel.findByIdAndUpdate(req.params.id, {
+    $set: {
+      notification: false
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => res.status(200).json(offer))
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+}
+
 const updateNotInterested = async (req, res) => {
 
   const ObjectId = require('mongoose').Types.ObjectId;
@@ -382,5 +401,6 @@ module.exports = {
   listByOwnerId,
   paymentPending,
   completed,
-  closed
+  closed,
+  disablenotification
 };

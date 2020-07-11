@@ -47,6 +47,10 @@ const OfferSchema = new mongoose.Schema({
   title: {
     type: String,
   },
+  notification: {
+    type: Boolean,
+    default: false
+  }
 });
 
 // Export the Offer model

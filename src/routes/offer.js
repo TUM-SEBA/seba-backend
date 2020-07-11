@@ -19,6 +19,7 @@ router.put('/accept/:id', middlewares.checkAuthentication, OfferController.accep
 router.put('/paymentPending/:id', middlewares.checkAuthentication, OfferController.paymentPending); // Update an offer by Id
 router.put('/completed/:id', middlewares.checkAuthentication, OfferController.completed); // Update an offer by Id
 router.put('/closed/:id', middlewares.checkAuthentication, OfferController.closed); // Update an offer by Id
+router.put('/disablenotification/:id', middlewares.checkAuthentication, OfferController.disablenotification); // Update an offer by Id
 router.put('/not-interested/:id', middlewares.checkAuthentication, OfferController.updateNotInterested); // Update an offer by Id
 router.delete('/:id', middlewares.checkAuthentication, OfferController.remove); // Delete an offer by Id
 
