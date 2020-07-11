@@ -5,7 +5,7 @@ const mongoose   = require('mongoose');
 
 const api        = require('./src/api');
 const config     = require('./src/config');
-
+const sockjs     = require('sockjs');
 
 // Set the port to the API.
 api.set('port', config.port);
@@ -21,6 +21,22 @@ mongoose
         console.log('Error connecting to the database', err.message);
         process.exit(err.statusCode);
     });
+
+
+//Websocket server setup
+const echo = sockjs.createServer({ sockjs_url: config.sockjsURL });
+const clients=[];
+echo.on('connection', function(conn) {
+    clients.push(conn);
+    conn.on('data', function(message) {
+        for (var i=0; i < clients.length; i++) 
+            clients[i].write(message);
+    });
+    conn.on('close', function() {
+        clients = clients.filter(client => client.id !== conn.id);
+    });
+});
+echo.installHandlers(server, {prefix:'/echo'});
 
 
 server.on('listening', () => {

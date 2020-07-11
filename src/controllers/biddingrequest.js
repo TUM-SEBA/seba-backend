@@ -2,6 +2,7 @@
 
 const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
+const OfferModel = require("../models/offer");
 
 const create = async (req, res) => {
   if (!Object.prototype.hasOwnProperty.call(req.body, 'offer')) return res.status(400).json({
@@ -22,7 +23,9 @@ const create = async (req, res) => {
   let biddingRequest = req.body;
   biddingRequest['caretaker'] = customer._id.toString();
   BiddingRequestModel.create(biddingRequest)
-    .then((biddingRequest) => {
+    .then(async(biddingRequest) => {
+      //Notify user that a bidding request is made on an offer
+      await OfferModel.where({ _id: req.body.offer }).updateOne({notification: true}).exec();
       res.status(201).json(biddingRequest)
     })
     .catch((error) =>
