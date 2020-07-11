@@ -25,7 +25,7 @@ mongoose
 
 //Websocket server setup
 const echo = sockjs.createServer({ sockjs_url: config.sockjsURL });
-const clients=[];
+let clients=[];
 echo.on('connection', function(conn) {
     clients.push(conn);
     conn.on('data', function(message) {
