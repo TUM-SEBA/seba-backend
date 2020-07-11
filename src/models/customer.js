@@ -54,6 +54,10 @@ const CustomerSchema = new mongoose.Schema({
   notInterestedOffers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Offer",
+  }],
+  rejectedOffers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Offer",
   }]
 });
 

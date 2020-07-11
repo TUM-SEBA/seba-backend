@@ -36,77 +36,6 @@ const create = async (req, res) => {
     );
 };
 
-const read = (req, res) => {
-  BiddingRequestModel.findById(req.params.id)
-    .populate('offer')
-    .exec()
-    .then((biddingRequest) => {
-      if (!biddingRequest)
-        return res.status(404).json({
-          error: "Not Found",
-          message: `Bidding Request not found`,
-        });
-
-      res.status(200).json(biddingRequest);
-    })
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal Server Error",
-        message: error.message,
-      })
-    );
-};
-
-const update = (req, res) => {
-  if (Object.keys(req.body).length === 0) {
-    return res.status(400).json({
-      error: "Bad Request",
-      message: "The request body is empty",
-    });
-  }
-
-  BiddingRequestModel.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  })
-    .exec()
-    .then((biddingRequest) => res.status(200).json(biddingRequest))
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
-const remove = (req, res) => {
-  BiddingRequestModel.findByIdAndRemove(req.params.id)
-    .exec()
-    .then(() =>
-      res
-        .status(200)
-        .json({message: `Bidding request with id${req.params.id} was deleted`})
-    )
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
-const list = (req, res) => {
-  BiddingRequestModel.find({})
-    .exec()
-    .then((biddingRequests) => res.status(200).json(biddingRequests))
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
 const listByOffer = (req, res) => {
   const offerId = req.params.id;
   const ObjectId = require('mongoose').Types.ObjectId;
@@ -114,9 +43,38 @@ const listByOffer = (req, res) => {
     'offer': ObjectId(offerId)
   })
     .populate('caretaker')
+    .populate('offer')
     .exec()
-    .then((offers) => {
-      return res.status(200).json(offers);
+    .then((biddingRequests) => {
+
+      BiddingRequestModel
+        .populate(biddingRequests, {
+          path: 'offer.owner',
+          model: 'Customer'
+        }).then(biddingRequests => {
+
+        BiddingRequestModel
+          .populate(biddingRequests, {
+            path: 'offer.entity',
+            model: 'Entity'
+          }).then(biddingRequests => {
+
+          res.status(200).json(biddingRequests);
+
+        }).catch((error) =>
+          res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+          })
+        );
+
+        }).catch((error) =>
+        res.status(500).json({
+          error: "Internal server error",
+          message: error.message,
+        })
+      );
+
     })
     .catch((error) =>
       res.status(500).json({
@@ -136,7 +94,7 @@ const getCaretakerFromBiddingRequest = (req, res) => {
           error: "Not Found",
           message: `Bidding Request not found`,
         });
-      
+
         CustomerModel.findById(biddingRequest.caretaker)
         .exec()
         .then((caretaker) => {
@@ -162,10 +120,6 @@ const getCaretakerFromBiddingRequest = (req, res) => {
 
 module.exports = {
   create,
-  read,
-  update,
-  remove,
-  list,
   listByOffer,
   getCaretakerFromBiddingRequest
 };
