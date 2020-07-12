@@ -129,9 +129,30 @@ const list = (req, res) => {
     );
 };
 
-const listByOwnerId = (req, res) => {
+const listByMyCaretakerId = (req, res) => {
   const caretakerId = req.userId;
   const ObjectId = require('mongoose').Types.ObjectId;
+
+  ReviewModel.find({
+    'caretaker': ObjectId(caretakerId)
+  })
+    .exec()
+    .then((offers) => {
+      return res.status(200).json(offers);
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const listByCaretakerId = (req, res) => {
+
+  const caretakerId = req.params.id
+  const ObjectId = require('mongoose').Types.ObjectId;
+
   ReviewModel.find({
     'caretaker': ObjectId(caretakerId)
   })
@@ -153,5 +174,6 @@ module.exports = {
   update,
   remove,
   list,
-  listByOwnerId,
+  listByMyCaretakerId,
+  listByCaretakerId,
 };
