@@ -1,7 +1,9 @@
 "use strict";
 
 const EntityModel = require("../models/entity");
+const OfferModel = require("../models/offer");
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 const create = (req, res) => {
   if (Object.keys(req.body).length === 0)
@@ -45,26 +47,6 @@ const create = (req, res) => {
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
-const read = (req, res) => {
-  EntityModel.findById(req.params.id)
-    .exec()
-    .then((entity) => {
-      if (!entity)
-        return res.status(404).json({
-          error: "Not Found",
-          message: `Entity not found`,
-        });
-
-      res.status(200).json(entity);
-    })
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal Server Error",
         message: error.message,
       })
     );
@@ -155,9 +137,34 @@ const remove = (req, res) => {
 };
 
 const list = (req, res) => {
-  EntityModel.find({})
+  OfferModel.find({})
     .exec()
-    .then((entities) => res.status(200).json(entities))
+    .then((offers) => {
+      const entityOfferMap = {};
+      offers.forEach(offer => {
+        entityOfferMap[offer.entity] = true;
+      });
+      EntityModel.find({})
+        .exec()
+        .then((entities) => {
+          const data = entities.map(entity => {
+            const entityObj = entity.toObject();
+             if (entityOfferMap[entity._id]) {
+               entityObj["hasOffer"] = true;
+             } else {
+               entityObj["hasOffer"] = false;
+             }
+             return entityObj;
+          });
+          return res.status(200).json(data)
+        })
+        .catch((error) =>
+          res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+          })
+        );
+    })
     .catch((error) =>
       res.status(500).json({
         error: "Internal server error",
@@ -168,14 +175,13 @@ const list = (req, res) => {
 
 const moveImage = (image) => {
   let ext = (image.name.match(/\.([^.]*?)(?=\?|#|$)/) || [])[1];
-  let file_name = `${image.md5}.${ext}`;
+  let file_name = `${uuidv4()}.${ext}`;
   image.mv(`./public/${file_name}`);
   return file_name;
 };
 
 module.exports = {
   create,
-  read,
   update,
   remove,
   list,

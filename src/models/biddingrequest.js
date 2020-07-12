@@ -22,6 +22,10 @@ const BiddingRequestSchema = new mongoose.Schema({
   remarks: {
     type: String,
   },
+  rejected: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 // Export the Bidding Request model

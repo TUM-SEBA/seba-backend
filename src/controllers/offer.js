@@ -3,7 +3,6 @@
 const OfferModel = require("../models/offer");
 const BiddingRequestModel = require("../models/biddingrequest");
 const CustomerModel = require("../models/customer");
-const EntityModel = require("../models/entity");
 
 const Status = {
   ASSIGNED: "Assigned",
@@ -66,56 +65,6 @@ const read = (req, res) => {
     );
 };
 
-const update = (req, res) => {
-  if (Object.keys(req.body).length === 0) {
-    return res.status(400).json({
-      error: "Bad Request",
-      message: "The request body is empty",
-    });
-  }
-
-  OfferModel.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  })
-    .exec()
-    .then((offer) => res.status(200).json(offer))
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
-const remove = (req, res) => {
-  OfferModel.findByIdAndRemove(req.params.id)
-    .exec()
-    .then(() =>
-      res
-        .status(200)
-        .json({message: `offer with id${req.params.id} was deleted`})
-    )
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
-const list = (req, res) => {
-  OfferModel.find({})
-    .exec()
-    .then((offers) => res.status(200).json(offers))
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
-};
-
 const listAvailable = async (req, res) => {
 
   // Retrieve interested offers
@@ -144,7 +93,8 @@ const listAvailable = async (req, res) => {
   OfferModel.find({
     _id: {$nin: notAvailableOfferIds},
     owner: {$ne: req.userId},
-    status: Status.NOT_ASSIGNED
+    status: Status.NOT_ASSIGNED,
+    startDate: {$gt: new Date()},
   })
     .populate("owner")
     .populate("entity")
@@ -161,81 +111,113 @@ const listAvailable = async (req, res) => {
 };
 
 const listInterested = async (req, res) => {
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const interestedBiddingRequests = await BiddingRequestModel.find({
-    'caretaker': ObjectId(req.userId)
-  }).exec();
-  const interestedOfferIds = [];
-  interestedBiddingRequests.forEach(biddingRequest => {
-    if (biddingRequest.offer._id) {
-      interestedOfferIds.push(biddingRequest.offer._id.toString());
-    }
-  });
-  OfferModel.find({
-    _id: {$in: interestedOfferIds},
-    owner: {$ne: req.userId}
-  })
-    .populate("owner")
-    .populate("entity")
-    .populate("approvedBiddingRequest")
-    .exec()
-    .then((offers) => {
-      OfferModel.populate(offers, {
-        path: 'approvedBiddingRequest.caretaker',
-        model: 'Customer'
-      }).then(customer => {
-        return res.status(200).json(offers);
-      }).catch((error) =>
-        res.status(500).json({
-          error: "Internal server error",
-          message: error.message,
-        })
-      );
+
+  try {
+    const ObjectId = require('mongoose').Types.ObjectId;
+    let biddingRequests = await BiddingRequestModel.find({
+      'caretaker': ObjectId(req.userId)
+    }).exec();
+    biddingRequests = await BiddingRequestModel.populate(biddingRequests, {
+      path: "offer",
+      entity: "Offer"
+    });
+    biddingRequests = await BiddingRequestModel.populate(biddingRequests, {
+      path: "offer.owner",
+      entity: "Customer"
+    });
+    biddingRequests = await BiddingRequestModel.populate(biddingRequests, {
+      path: "offer.entity",
+      entity: "Entity"
+    });
+    biddingRequests = await BiddingRequestModel.populate(biddingRequests, {
+      path: "offer.approvedBiddingRequest",
+      entity: "BiddingRequest"
+    });
+    biddingRequests = await BiddingRequestModel.populate(biddingRequests, {
+      path: "offer.approvedBiddingRequest.caretaker",
+      entity: "Customer"
+    });
+    const customer = await CustomerModel.findById(req.userId).exec();
+    const rejectedOfferIds = customer.rejectedOffers;
+
+
+    const offers = biddingRequests.filter(biddingRequest => {
+      return !rejectedOfferIds.includes(biddingRequest.offer._id);
+    }).map(biddingRequest => biddingRequest.offer);
+
+    return res.status(200).json(offers);
+  } catch (error) {
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
     })
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
-      })
-    );
+  }
 };
 
 const listNotInterested = async (req, res) => {
-  CustomerModel.findById(req.userId)
-    .populate({
-      path: "notInterestedOffers",
-      model: "Offer",
-    })
-    .exec()
-    .then((customer) => {
-      CustomerModel.populate(customer, {
-          path: 'notInterestedOffers.owner',
-          model: 'Customer'
-        }).then(customer => {
-          CustomerModel.populate(customer, {
-            path: 'notInterestedOffers.entity',
-            model: 'Entity'
-          }).then(customer => {
-            return res.status(200).json(customer.notInterestedOffers);
-          }).catch((error) =>
-            res.status(500).json({
-              error: "Internal server error",
-              message: error.message,
-            })
-          );
-        }).catch((error) =>
-          res.status(500).json({
-            error: "Internal server error",
-            message: error.message,
-          })
-        );
-    })
-    .catch((error) =>
-      res.status(500).json({
-        error: "Internal server error",
-        message: error.message,
+
+  try {
+    let customers = await CustomerModel.findById(req.userId)
+      .populate({
+        path: "notInterestedOffers",
+        model: "Offer",
       })
-    );
+      .exec();
+    customers = await CustomerModel.populate(customers, {
+      path: 'notInterestedOffers.owner',
+      model: 'Customer'
+    });
+    customers = await CustomerModel.populate(customers, {
+      path: 'notInterestedOffers.entity',
+      model: 'Entity'
+    });
+    customers = await CustomerModel.populate(customers, {
+      path: 'notInterestedOffers.approvedBiddingRequest',
+      model: 'BiddingRequest'
+    });
+    customers = await CustomerModel.populate(customers, {
+      path: 'notInterestedOffers.approvedBiddingRequest.caretaker',
+      model: 'Customer'
+    });
+
+    return res.status(200).json(customers.notInterestedOffers);
+  } catch (error) {
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    })
+  }
+};
+
+const listRejected = async (req, res) => {
+
+  try {
+    let customers = await CustomerModel.findById(req.userId)
+      .populate({
+        path: "rejectedOffers",
+        model: "Offer",
+      })
+      .exec();
+    customers = await CustomerModel.populate(customers, {
+      path: 'rejectedOffers.owner',
+      model: 'Customer'
+    });
+    customers = await CustomerModel.populate(customers, {
+      path: 'rejectedOffers.entity',
+      model: 'Entity'
+    });
+    customers = await CustomerModel.populate(customers, {
+      path: 'rejectedOffers.approvedBiddingRequest',
+      model: 'BiddingRequest'
+    });
+
+    return res.status(200).json(customers.rejectedOffers);
+  } catch (error) {
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    })
+  }
 };
 
 const accept = (req, res) => {
@@ -260,6 +242,52 @@ const accept = (req, res) => {
     .exec()
     .then((offer) => {
       return res.status(200).json(offer)
+    })
+    .catch((error) =>
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    );
+};
+
+const reject = (req, res) => {
+
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      error: "Bad Request",
+      message: "The request body is empty",
+    });
+  }
+
+  BiddingRequestModel.findByIdAndUpdate(req.body['biddingRequestId'], {
+    $set: {
+      rejected: true,
+    }
+  }, {
+    new: true,
+    runValidators: true,
+  })
+    .exec()
+    .then((offer) => {
+      CustomerModel.findByIdAndUpdate(req.body['caretakerId'], {
+        $addToSet: {
+          rejectedOffers: req.params.id,
+        }
+      }, {
+        new: true,
+        runValidators: true,
+      })
+        .exec()
+        .then((customer) => {
+          res.status(200).json(customer.rejectedOffers)
+        })
+        .catch((error) =>
+          res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+          })
+        );
     })
     .catch((error) =>
       res.status(500).json({
@@ -347,7 +375,6 @@ const disablenotification = (req, res) => {
 
 const updateNotInterested = async (req, res) => {
 
-  const ObjectId = require('mongoose').Types.ObjectId;
   CustomerModel.findByIdAndUpdate(req.userId, {
     $addToSet: {
       notInterestedOffers: req.params.id,
@@ -390,13 +417,12 @@ const listByOwnerId = (req, res) => {
 module.exports = {
   create,
   read,
-  update,
-  remove,
-  list,
   listAvailable,
   listInterested,
   listNotInterested,
+  listRejected,
   accept,
+  reject,
   updateNotInterested,
   listByOwnerId,
   paymentPending,
