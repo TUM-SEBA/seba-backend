@@ -65,21 +65,24 @@ const update = (req, res) => {
     .exec()
     .then((entity) => {
 
-      const currentImages = entity.images;
-      for (let i = 0; i < currentImages.length; i++) {
-        fs.unlink(`./public/${currentImages[i]}`, () => {});
-      }
-
-      const images = [];
-      if (!req.files.images.length) {
-        const file_name = moveImage(req.files.images);
-        images.push(file_name);
-      } else {
-        for (let i = 0; i < req.files.images.length; i++) {
-          let image = req.files.images[i];
-          const file_name = moveImage(image);
-          images.push(file_name);
+      let images = [];
+      if (req.files && req.files.images) {
+        const currentImages = entity.images;
+        for (let i = 0; i < currentImages.length; i++) {
+          fs.unlink(`./public/${currentImages[i]}`, () => {});
         }
+        if (!req.files.images.length) {
+          const file_name = moveImage(req.files.images);
+          images.push(file_name);
+        } else {
+          for (let i = 0; i < req.files.images.length; i++) {
+            let image = req.files.images[i];
+            const file_name = moveImage(image);
+            images.push(file_name);
+          }
+        }
+      } else {
+        images = entity.images;
       }
 
       const newEntity = {
