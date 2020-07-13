@@ -135,7 +135,13 @@ const listByMyCaretakerId = (req, res) => {
 
   ReviewModel.find({
     'caretaker': ObjectId(caretakerId)
-  })
+  }).populate('offer')
+    .populate({
+      path: 'offer',
+      populate: {
+        path: 'owner',
+        model: 'Customer'
+      }})
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
@@ -155,7 +161,14 @@ const listByCaretakerId = (req, res) => {
 
   ReviewModel.find({
     'caretaker': ObjectId(caretakerId)
-  })
+  }).populate('offer')
+    .populate({
+      path: 'offer',
+      populate: {
+        path: 'owner',
+        model: 'Customer'
+      }})
+    .populate( 'owner')
     .exec()
     .then((offers) => {
       return res.status(200).json(offers);
