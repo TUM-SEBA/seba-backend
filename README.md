@@ -41,7 +41,7 @@ mongorestore dump/
 
 This variables are based in your local configuration
 ```bash
-export PORT=3000
+export PORT=5000
 export MONGODB_URI="mongodb://localhost:27010/communitydb"
 export JWT_SECRET="very secret secret"
 ```
