@@ -29,7 +29,6 @@ let clients=[];
 echo.on('connection', function(conn) {
     clients.push(conn);
     conn.on('data', function(message) {
-        console.log(message);
         for (var i=0; i < clients.length; i++)
             clients[i].write(message);
     });
