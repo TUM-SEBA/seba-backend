@@ -140,14 +140,17 @@ const remove = (req, res) => {
 };
 
 const list = (req, res) => {
-  OfferModel.find({})
+  const ObjectId = require('mongoose').Types.ObjectId;
+  OfferModel.find()
     .exec()
     .then((offers) => {
       const entityOfferMap = {};
       offers.forEach(offer => {
         entityOfferMap[offer.entity] = true;
       });
-      EntityModel.find({})
+      EntityModel.find({
+          owner: ObjectId(req.userId),
+        })
         .exec()
         .then((entities) => {
           const data = entities.map(entity => {
