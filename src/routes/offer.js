@@ -13,7 +13,7 @@ router.get('/not-interested', middlewares.checkAuthentication, OfferController.l
 router.get('/rejected', middlewares.checkAuthentication, OfferController.listRejected); // List all rejected offers
 router.post('/', middlewares.checkAuthentication, OfferController.create); // Create a new offer
 router.get('/:id', middlewares.checkAuthentication, OfferController.read); // Read an offer by Id
-router.get('/user/listByOwnerId', middlewares.checkAuthentication, OfferController.listByOwnerId); // Read an offer by Owner Id
+router.get('/user/listByOwnerId', middlewares.checkAuthentication, OfferController.listByOwnerId); // Read the current user's previously created offers
 router.put('/accept/:id', middlewares.checkAuthentication, OfferController.accept); // Accept an offer by Id
 router.put('/reject/:id', middlewares.checkAuthentication, OfferController.reject); // Reject an offer by Id
 router.put('/paymentPending/:id', middlewares.checkAuthentication, OfferController.paymentPending); // Update an offer by Id
