@@ -12,6 +12,11 @@ const Status = {
   CLOSED: "Closed"
 };
 
+/**
+ * Returns newly created offer
+ * @param req offer
+ * @param res offer
+ */
 const create = (req, res) => {
   if (!Object.prototype.hasOwnProperty.call(req.body, 'startDate')) return res.status(400).json({
     error: 'Bad Request',
@@ -43,6 +48,11 @@ const create = (req, res) => {
     );
 };
 
+/**
+ * Returns offer based on specified id
+ * @param req offerId
+ * @param res offer
+ */
 const read = (req, res) => {
   OfferModel.findById(req.params.id)
     .populate("owner")
@@ -65,6 +75,11 @@ const read = (req, res) => {
     );
 };
 
+/**
+ * Returns available offers for specific caretaker
+ * @param req caretakerId
+ * @param res offers
+ */
 const listAvailable = async (req, res) => {
 
   // Retrieve interested offers
@@ -110,6 +125,11 @@ const listAvailable = async (req, res) => {
     );
 };
 
+/**
+ * Returns interested offers for specific caretaker
+ * @param req caretakerId
+ * @param res offers
+ */
 const listInterested = async (req, res) => {
 
   try {
@@ -154,6 +174,11 @@ const listInterested = async (req, res) => {
   }
 };
 
+/**
+ * Returns not interested offers for specific caretaker
+ * @param req caretakerId
+ * @param res offers
+ */
 const listNotInterested = async (req, res) => {
 
   try {
@@ -189,6 +214,11 @@ const listNotInterested = async (req, res) => {
   }
 };
 
+/**
+ * Returns rejected offers for specific caretaker
+ * @param req caretakerId
+ * @param res offers
+ */
 const listRejected = async (req, res) => {
 
   try {
@@ -220,6 +250,11 @@ const listRejected = async (req, res) => {
   }
 };
 
+/**
+ * Returns accepted offer
+ * @param req offerId
+ * @param res offer
+ */
 const accept = (req, res) => {
   if (Object.keys(req.body).length === 0) {
     return res.status(400).json({
@@ -251,6 +286,11 @@ const accept = (req, res) => {
     );
 };
 
+/**
+ * Returns rejected offer
+ * @param req offerId
+ * @param res rejected offers
+ */
 const reject = (req, res) => {
 
   if (Object.keys(req.body).length === 0) {

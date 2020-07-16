@@ -36,6 +36,11 @@ const create = async (req, res) => {
     );
 };
 
+/**
+ * Returns bidding requests associated with specific offer
+ * @param req offerId
+ * @param res biddingRequests
+ */
 const listByOffer = (req, res) => {
   const offerId = req.params.id;
   const ObjectId = require('mongoose').Types.ObjectId;
@@ -84,6 +89,11 @@ const listByOffer = (req, res) => {
     );
 };
 
+/**
+ * Returns caretaker associated with specific bidding request
+ * @param req biddingRequestId
+ * @param res caretaker
+ */
 const getCaretakerFromBiddingRequest = (req, res) => {
   let caretakerBody = {};
   BiddingRequestModel.findById(req.params.id)
